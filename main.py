@@ -146,13 +146,12 @@ fist  = 'fist'
 sword = 'sword'
 stick = 'stick'
 
-#weapons = [knife, gun, cane, fist, sword, stick]
+weapons = [knife, gun, cane, fist, sword, stick]
 peopleHelpers = []
 inventory = [stick]
 
 hero = Player(100, 100, 5)
 
-weapons = [knife, gun, cane, fist, sword, stick]
 stick = Weapon(5)
 gun = Weapon(50)
 cane = Weapon(6)
