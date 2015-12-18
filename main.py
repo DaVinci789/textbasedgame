@@ -1,4 +1,5 @@
 import time, random, sys
+from obj import *
 
 def choosePerson(wantedInfo): # Choose person to interact with
     assert wantedInfo == 'person' or wantedInfo == 'item', 'Bad argument.'
@@ -13,8 +14,18 @@ def choosePerson(wantedInfo): # Choose person to interact with
 
 
 def getWeaponPower(item):
-    return weaponPower[item]
-
+    if item == "knife":
+        return knife.power
+    elif item == "gun":
+        return gun.power
+    elif item == "cane":
+        return cane.power
+    elif item == "fist":
+        return fist.power
+    elif item == "sword":
+        return sword.power
+    elif item == "stick":
+        return stick.power
 
 def getBestInventoryWeapon():
     bestItemPower = 0
@@ -41,21 +52,21 @@ def personInteraction():
 
 
 def fight(person, weapon):
-    global playerPower, inventory, coins, health
+    global playerPower, inventory, money, health
     personHealth = 100
     print('The ' + person + ' pulls out a(n) ' + weapon + ' threateningly.')
     time.sleep(1)
 
     while True:
-        health -= getWeaponPower(weapon) + peoplePower[person] # Remove health from player
-        personHealth -= getBestInventoryWeapon() + playerPower # Remove health of opponent
+        hero.health -= getWeaponPower(weapon) + peoplePower[person] # Remove health from player
+        personHealth -= getBestInventoryWeapon() + hero.power # Remove health of opponent
 
-        if health < 1 and personHealth < 1:
+        if hero.health < 1 and personHealth < 1:
             # In case of draw
             print('Draw!')
             break
 
-        elif health < 1:
+        elif hero.health < 1:
             # In case of loss
             print('You\'re dead!')
             removedItems = []
@@ -74,8 +85,8 @@ def fight(person, weapon):
                 else:
                    print(item + ', ', end='')
 
-            droppedCoins = random.randint(0, int(coins / 2))
-            coins -= droppedCoins
+            droppedCoins = random.randint(0, int(hero.money / 2))
+            hero.money -= droppedCoins
             print('You dropped %s coins on your death.' %(droppedCoins))
             break
 
@@ -84,8 +95,8 @@ def fight(person, weapon):
             # In case of win
             print('The ' + person + ' has been defeated!')
             powerToAdd = peoplePower[person] / 4
-            playerPower += powerToAdd
-            print('Your power level is now ' + str(playerPower))
+            hero.power += powerToAdd
+            print('Your power level is now ' + str(hero.power))
         
             if random.randint(1, 2) == 1:
 
@@ -98,23 +109,28 @@ def fight(person, weapon):
 def commandLine():
     print('type "help" for help')
     while True:
-        command = input('>> ')
-        if command == 'help':
-            print('Possible commands:')
-            print('help--show this message\n'
-                  'interact--find another person to interact with\n'
-                  'money--show amount of money\n'
-                  'inventory--list inventory items\n'
-                  'health--show health')
-        elif command == 'interact':
-            personInteraction()
-        elif command == 'money':
-            print(coins)
-        elif command == 'inventory':
-            for item in inventory:
-                print(item)
-        elif command == 'health':
-            print(health)
+        try:
+            command = input('>> ')
+            if command == 'help':
+                print('Possible commands:')
+                print('help--show this message\n'
+                      'interact--find another person to interact with\n'
+                      'money--show amount of money\n'
+                      'inventory--list inventory items\n'
+                      'health--show health')
+            elif command == 'interact':
+                personInteraction()
+            elif command == 'money':
+                print(hero.money)
+            elif command == 'inventory':
+                for item in inventory:
+                    print(item)
+            elif command == 'health':
+                print(hero.health)
+            else:
+                print('type "help" for help')
+        except EOFError or KeyboardInterrupt:
+            sys.exit()
 
 assassin = "assassin"
 oldLady = "old lady"
@@ -125,17 +141,23 @@ peoplePower = {oldLady: 1, baby: 1, assassin: 10}
 
 knife = 'knife'
 gun = 'gun'
-cane = 'cane'
-fist = 'fist'
+cane  = 'cane'
+fist  = 'fist'
 sword = 'sword'
 stick = 'stick'
 
-weapons = [knife, gun, cane, fist, sword]
+#weapons = [knife, gun, cane, fist, sword, stick]
 peopleHelpers = []
-weaponPower = {stick: 5, gun: 50, cane: 6, fist: 3, sword: 40, knife: 10}
 inventory = [stick]
-health = 100
-coins = 100
-playerPower = 5
+
+hero = Player(100, 100, 5)
+
+weapons = [knife, gun, cane, fist, sword, stick]
+stick = Weapon(5)
+gun = Weapon(50)
+cane = Weapon(6)
+fist = Weapon(3)
+sword = Weapon(40)
+knife = Weapon(10)
 
 commandLine()
