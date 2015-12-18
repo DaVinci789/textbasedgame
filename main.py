@@ -97,13 +97,17 @@ def fight(person, weapon):
             powerToAdd = peoplePower[person] / 4
             hero.power += powerToAdd
             print('Your power level is now ' + str(hero.power))
-        
             if random.randint(1, 2) == 1:
-
                 inventory.append(weapon)
                 print('%s added to inventory.' %(weapon))
+            coinsToAdd = peoplePower[person] * 5 + random.randint(-4, 4) # Dropped coins is opponent pwr * 5 + randint
+            coins += coinsToAdd
+            print('Opponent dropped %s coins' %(coinsToAdd))
 
             break
+
+possibleCommands = ['help--show this message', 'interact--find another person to interact with',
+                    'money--show amount of money', 'inventory--list inventory items', 'health--show health']
 
 
 def commandLine():
@@ -129,7 +133,7 @@ def commandLine():
                 print(hero.health)
             else:
                 print('type "help" for help')
-        except EOFError or KeyboardInterrupt:
+        except EOFError:
             sys.exit()
 
 assassin = "assassin"
