@@ -20,7 +20,7 @@ class Player(object):
             raise RuntimeError
         self.money -= amount
         return self.money
-    
+
     def receive(self, amount):
         self.money += amount
         return self.money
@@ -28,6 +28,7 @@ class Player(object):
     def gain(self, amount):
         self.power += amount
         return self.power
+
 
 class Weapon(object):
     def __init__(self, name, power, itemtype, cost, description):
@@ -39,17 +40,16 @@ class Weapon(object):
 
 
 class Enemy(object):
-    inventory = []
     def __init__(self, name, health, power, acts):
         self.name = name
         self.power = power
         self.health = health
         self.money = 0
-        # self.inventory = inventory
+        self.inventory = []
         self.acts = acts
 
-    def addToInventory(item):
-        inventory.append(item)
+    def addToInventory(self, item):
+        self.inventory.append(item)
 
 
 class Helper(object):
