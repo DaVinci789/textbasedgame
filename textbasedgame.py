@@ -515,7 +515,7 @@ possibleCommands = ['help -- show this message',
 
 interactoptions = ['fight', 'act', 'item', 'spare']
 
-player = Player('nil', 100, 100, 9000)
+player = Player('nil', 100, 100, 10)
 
 if args.reset:
     newGame()
