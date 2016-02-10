@@ -37,21 +37,25 @@ class Weapon(object):
         self.description = description
         self.itemtype = itemtype
 
+
 class Enemy(object):
+    inventory = []
     def __init__(self, name, health, power, acts):
         self.name = name
         self.power = power
         self.health = health
         self.money = 0
-        self.inventory = []
+        # self.inventory = inventory
         self.acts = acts
 
     def addToInventory(item):
-        self.inventory.append(item)
+        inventory.append(item)
+
 
 class Helper(object):
     def __init__(self, name):
         self.name = name
+
 
 class Vendor(object):
     goods = {}
@@ -65,6 +69,7 @@ class Vendor(object):
             print(item.name + ': ' + str(item.cost) + ' money')
         return item
 
+
 class Food(object):
     def __init__(self, name, hp, cost, description):
         self.name = name
@@ -72,8 +77,9 @@ class Food(object):
         self.cost = cost
         self.description = description
 
+
 class Location(object):
-    def __init__(self, name, description, entity): # Save Location in Battle
+    def __init__(self, name, description, entity):  # Save Location in Battle
         self.name = name
         self.description = description
         self.entity = entity

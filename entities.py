@@ -42,6 +42,15 @@ vendors = (foodMerchant, weaponTrader)
 # Create worlds
 World = World(0, 37)
 
+# Locations
+
+locationMain = Location('Main', 'Where it all begins.', None)
+locationInventory = Location('Inventory', 'Your Inventory.', None)
+locationMarket = Location('Market', 'The Market.', None)
+#locationMarketFood = Location('Food Store', 'Hello! Welcome to my food store.', foodMerchant)
+#locationMarketFood = Location('Weapons Shop', 'I sell things to help you more efficiently kill people.', weaponsTrader)
+locationInteract = Location('Interact', 'Interact with your Surroundings.', None)
+
 # Command line parsing
 
 argparser = argparse.ArgumentParser(description='A currently unnamed text-based game')
