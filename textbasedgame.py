@@ -1,5 +1,8 @@
 #!/usr/bin/python3
 
+import argparse
+import inspect
+import os
 import random
 import sys
 import shelve
@@ -9,6 +12,25 @@ from entities import *
 from languages import *
 
 
+def confirm(prompt='', default=True):
+    if default:
+        answer = input(prompt + ' (Y/n) ')
+        if answer.lower() == 'y' or answer.lower() == 'yes' or answer == '':
+            return True
+        elif answer.lower() == 'n' or answer.lower() == 'no':
+            return False
+        else:
+            return False
+    else:
+        answer = input(prompt + ' (y/N)')
+        if answer.lower() == 'y' or answer.lower() == 'yes':
+            return True
+        elif answer.lower() == 'n' or answer.lower() == 'no':
+            return False
+        else:
+            return False
+
+
 def getBestInventoryWeapon():
     bestItemPower = 0
     for item in player.inventory:
@@ -16,7 +38,7 @@ def getBestInventoryWeapon():
             weapPwr = item.power
             if weapPwr > bestItemPower:
                 bestItemPower = weapPwr
-    return bestItemPower
+    return bestItemPower, item
 
 
 def personInteraction():
@@ -24,33 +46,29 @@ def personInteraction():
     player.location = locationInteract
     personType = random.randint(1, 3)
     if personType == 1:
-        command = input('You see a mean-looking person in the distance. Do you choose to approach? (y/n) : ')
         person = [random.choice(enemies), random.choice(weapons)]
-        if command.upper() == 'Y':
+        if confirm('You see a mean-looking person in the distance. Do you choose to approach?'):
             fight(person[0], person[1])
         else:
             print('You run away in fear.')
     elif personType == 2:
         if entities:
-            command = input('You see a familiar, mean-looking person in the distance. Do you choose to approach? (y/n) : ')
             person = random.choice(entities)
             person.inventory.append(random.choice(weapons))
-            if command.upper() == 'Y':
+            if confirm('You see a familiar, mean-looking person in the distance. Do you choose to approach?'):
                 fight(person, person.inventory[0])
             else:
                 print('You run away in fear.')
         else:
-            command = input('You see a mean-looking person in the distance. Do you choose to approach? (y/n) : ')
             person = random.choice(enemies)
             person.inventory.append(random.choice(weapons))
-            if command.upper() == 'Y':
+            if confirm('You see a mean-looking person in the distance. Do you choose to approach?'):
                 fight(person, person.inventory[0])
             else:
                 print('You run away in fear.')
     else:
-        command = input('You see a kind-looking person in the distance. Do you choose to approach? (y/n) : ')
         person = [random.choice(helpers), random.choice(helperItems)]
-        if command.upper() == 'Y':
+        if confirm('You see a kind-looking person in the distance. Do you choose to approach?'):
             print('The person is a(n) ' + person[0].name + '!')
             if person[0] == oldLady:
                 fight(badOldLady, cane)
@@ -78,12 +96,12 @@ def fight(person, weapon):
         player.health += weapon.hp
         print("The " + str(player.location.entity.name) + " ran away")
         commandLine()
-    for choice in interactoptions:
+    for choice in ['auto', 'act', 'item', 'retreat']:
         print(choice)
     while player.health > 1 and player.location.entity.health > 1:
         command = input('Interact : ').split(" ")
-        if command[0] == "1" or command[0].upper() == "FIGHT":
-            continue
+        if command[0] == "1" or command[0].upper() == "AUTO":
+            break
         elif command[0] == "2" or command[0].upper() == "ACT":
             print("You " + str(player.location.entity.acts) + " the " + str(player.location.entity.name) + ".")
             if player.location.entity.acts == "pet":
@@ -132,15 +150,15 @@ def fight(person, weapon):
                         break
                 break
             else:
-                print("It does not seem you have that item")
-        elif command[0] == "4" or command[0].upper() == "SPARE":
-            print("You ran away")
+                print("Item command not found.")
+        elif command[0] == "4" or command[0].upper() == "RETREAT":
+            print("You ran away.")
             player.location.entity = None
-            commandLine()
+            return
     while True:
-        player.hit(weapon.power + player.location.entity.power)  # Remove health from player
-        player.location.entity.health -= getBestInventoryWeapon() + player.power  # Remove health of opponent
-        if player.health - (weapon.power + person.power) < 1 and person.health - (getBestInventoryWeapon() + player.power) < 1:
+        player.hit(weapon.power + player.location.entity.power) # Remove health from player
+        player.location.entity.health -= getBestInventoryWeapon()[0] + player.power # Remove health of opponent
+        if player.health - (weapon.power + person.power) < 1 and person.health - (getBestInventoryWeapon()[0] + player.power) < 1:
             # In case of draw
             time.sleep(0.2)
             print('You somehow managed to escape with %s health remaining.' % (player.health))
@@ -186,15 +204,13 @@ def fight(person, weapon):
             player.location.entity = None
             break
 
-
-def saveInfo(name, info):
-    saveFile = shelve.open('savefile')
+def saveInfo(username, name, info):
+    saveFile = shelve.open(fileDir + '/saves/%s.save' % username)
     saveFile[name] = info
     saveFile.close()
 
-
-def loadInfo(wantedInfo):
-    saveFile = shelve.open('savefile')
+def loadInfo(username, wantedInfo):
+    saveFile = shelve.open(fileDir + '/saves/%s.save' % username)
     info = saveFile[wantedInfo]
     return info
 
@@ -277,7 +293,7 @@ def inventory():
     while True:
         command = input('Inventory : ').split(" ")
         if command[0] == '.':
-            exec(previousCommand)
+            execute(previousCommand)
 
         elif command[0] == '?' or command[0].upper() == 'HELP':
             print()
@@ -330,14 +346,14 @@ def get(weapon):
     player.inventory.append(weapon)
 
 
-def exec(command):
+def execute(command):
     command = command.split(" ")
     if command[0] == '?' or command[0].upper() == 'HELP':
         print('Possible commands:')
         for command in possibleCommands:
             print(command)
     elif command[0].upper() == 'GOTO':
-        if command[1].upper() == 'INTERACT':
+        if command[1].upper() == 'INTERACTION':
             personInteraction()
         elif command[1].upper() == 'MARKET':
             print('Going to market...')
@@ -345,17 +361,17 @@ def exec(command):
         elif command[1].upper() == 'INVENTORY':
             print('Entering Inventory...')
             inventory()
+        else:
+            print('Location not found.')
     elif command[0].upper() == 'QUIT':
-        choice = input('Are you sure you want to quit? Your progress will be saved. (y/n) : ')
-        if choice.upper() == 'Y' or choice.upper() == 'YES':
+        if confirm('Are you sure you want to quit? Your progress will be saved.', True):
             quitGame()
         else:
             print('Cancelled.')
 
     elif command[0].upper() == 'RESET':
-        choice = input('Are you sure you want to reset all data? (y/n) : ')
-        if choice == 'y' or choice == 'yes':
-            saveInfo('firstTime', True)
+        if confirm('Are you sure you want to reset all data?', False):
+            newGame()
         else:
             print('Cancelled.')
 
@@ -364,7 +380,7 @@ def exec(command):
 
 
 def devMode():
-    global entities
+    global entities, previousCommand
     player.language = Language('en')
     print('Type "help" for help.')
     while True:
@@ -373,14 +389,14 @@ def devMode():
             command = input(': ')
             if command == '.':
                 if previousCommand is not None:
-                    exec(previousCommand)
+                    execute(previousCommand)
                 else:
                     print('No previous command set')
             elif command.startswith('get'):
                 weapon = command[4:]
                 get(weapon)
             else:
-                exec(command)
+                execute(command)
                 previousCommand = command
 
         except KeyboardInterrupt or EOFError:
@@ -388,18 +404,18 @@ def devMode():
 
 
 def commandLine():
-    global entities
+    global entities, previousCommand
     print('Type "help" for help.')
     while True:
         try:
             command = input(': ')
             if command == '.':
                 if previousCommand is not None:
-                    exec(previousCommand)
+                    execute(previousCommand)
                 else:
                     print('No previous command set')
             else:
-                exec(command)
+                execute(command)
                 previousCommand = command
 
         except KeyboardInterrupt or EOFError:
@@ -408,17 +424,12 @@ def commandLine():
 
 def quitGame():
         print('Saving progress...')
-        saveInfo('previousCommand', player.previousCommand)
-        saveInfo('entities', entities)
-        saveInfo('player.' + player.name, player)
-        saveInfo('firstTime', False)
+        saveInfo(usr, 'previousCommand', player.previousCommand)
+        saveInfo(usr, 'entities', entities)
+        saveInfo(usr, 'player.' + player.name, player)
+#        saveInfo('firstTime', False)
         print('Progress saved.')
         sys.exit()
-
-
-def newGame():
-    global player, entities
-    entities = []
     player = Player(input('What is your desired username? : '), 100, 100, float(5))
     player.inventory = [stick, potato]
     player.location = locationMain
@@ -434,24 +445,35 @@ def newGame():
         print('Incorrect language given. Defaulting to English.')
         player.language = Language('en')
         print(player.language.langwelcome)
-    saveInfo('firstTime', False)
+#    saveInfo('firstTime', False)
     commandLine()
 
 
 def loadGame():
-    global player, entities
+    global player, entities, usr, previousCommand
     try:
+        print('List of users:')
+        users = []
+        for file in os.listdir(fileDir + '/saves'):
+            if file.endswith('.save'):
+                print(file[:-5])
+                users.append(file[:-5])
         usr = input('What is your username? : ')
-        entities = loadInfo('entities')
-        player = loadInfo('player.' + usr)
-        print('Previous game save loaded.')
+        if usr not in users:
+            print('User not found. Creating new user...')
+            newGame()
+        entities = loadInfo(usr, 'entities')
+        player = loadInfo(usr, 'player.' + usr)
+        previousCommand = loadInfo(usr, 'previousCommand')
+        print('Game save loaded.')
         try:
             if player.location.name == 'Inventory':
                 inventory()
             elif player.location.name == 'Market':
                 goToVendor(player.location.entity)
             elif player.location.name == 'Interact':
-                fight(player.location.entity, player.location.entity.inventory[0])
+                #fight(player.location.entity, getBestInventoryWeapon()[1])
+                inventory()
         except KeyboardInterrupt or EOFError:
             quitGame()
         commandLine()
@@ -478,11 +500,7 @@ Do you want to:
             ''')
             choice = input(': ')
             if choice == 'new' or choice == '1':
-                choice = input('Are you sure you want to reset all data? (y/n) : ')
-                if choice.upper() == 'Y' or choice == 'yes':
                     newGame()
-                else:
-                    print('Cancelled.')
             elif choice == 'continue' or choice == '2':
                 loadGame()
             elif choice == 'cheats' or choice == '3':
@@ -493,29 +511,27 @@ Do you want to:
                 player.money = 100
                 player.power = float(5)
                 print('New game set up. Welcome!')
-                saveInfo('firstTime', False)
+#                saveInfo('firstTime', False)
                 devMode()
             elif choice == 'quit' or choice == '4':
                 sys.exit(0)
             else:
                 while True:
-                    choice = input('Invalid option: Do you want to quit (y/n) : ')
-                    if choice.upper() == 'Y' or choice == 'yes':
+                    if confirm('Invalid option. Do you want to quit?'):
                         sys.exit(0)
                     else:
                         break
     except EOFError or KeyboardInterrupt:
         sys.exit(0)
 
+# Get current file path
+fileDir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 
 possibleCommands = ['help -- show this message',
                     'goto -- goto <location>, ex. goto inventory',
                     'quit--quit game',
                     'reset--reset progress']
 
-interactoptions = ['fight', 'act', 'item', 'spare']
-
-player = Player('nil', 100, 100, 10)
 
 if args.reset:
     newGame()

@@ -1,4 +1,4 @@
-from obj import *
+from assets.obj import *
 import argparse
 
 # Set up enemies
@@ -40,7 +40,7 @@ weaponTrader.goods = {gun: gun, knife: knife, grenade: grenade}
 vendors = (foodMerchant, weaponTrader)
 
 # Create worlds
-World = World(0, 37)
+# World = World(0, 37)
 
 # Locations
 
