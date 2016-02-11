@@ -15,15 +15,18 @@ class Player(object):
         self.health -= amount
         return self.health
 
+
     def spend(self, amount):
         if amount > self.money:
             raise RuntimeError
         self.money -= amount
         return self.money
 
+
     def receive(self, amount):
         self.money += amount
         return self.money
+
 
     def gain(self, amount):
         self.power += amount
@@ -48,8 +51,8 @@ class Enemy(object):
         self.inventory = []
         self.acts = acts
 
-    def addToInventory(self, item):
-        self.inventory.append(item)
+        # def addToInventory(item):
+        #     self.inventory.append(item)
 
 
 class Helper(object):
@@ -83,6 +86,17 @@ class Location(object):
         self.name = name
         self.description = description
         self.entity = entity
+
+
+class HelpMsg(object):
+    def __init__(self, commands):
+        assert type(commands) == list, 'Commands must be in a list'
+        self.commands = commands
+
+    def prtMsg(self):
+        for command in self.commands:
+            print(command)
+
 
 if __name__ == '__main__':
     print()
